@@ -62,7 +62,7 @@ function createWall()
 //controls.enableDamping = true;
 //controls.dampingFactor = 0.25;
 //controls.enableZoom = false;
-createWall();
+//createWall();
 var size = 200;
 var divisions = 20;
 function createGrid(scene){
@@ -70,7 +70,7 @@ function createGrid(scene){
     grid.position.set(0,0,0);
     scene.add( grid );
 }
-var snake = new Snake(scene,1000);
+var snake = new Snake(scene,1000,15);
 
 createGrid(scene);
 var axisHelper = new THREE.AxisHelper( 500 );
@@ -86,35 +86,62 @@ window.addEventListener( 'resize', onWindowResize, false );
 renderer.clearDepth(); // important! clear the depth buffer
 
 */
+var snakeMovement = [
+        [0,0,-10],[10,0,0],[0,0,10],[-10,0,0],[0,10,0],[0,-10,0]
+];
+var cameraDir = 0;
+var cameraPos =[
+    {
+        x:0,z:camRadius
+    },
+    {
+        x:camRadius,z:0
+    },
+    {
+        x:0,z:-camRadius
+    },
+    {
+        x:-camRadius,z:0
+    }
+
+];
+var yash = {
+    w:[0,3,2,1],
+    d:[1,0,3,2],
+    s:[2,1,0,3],
+    a:[3,2,1,0],
+    q:[4,4,4,4],
+    e:[5,5,5,5]
+
+}
+console.log(snakeMovement[cameraDir][snake.direction]);
 var cameraTheta = 0,incUnit=0.2;
 function keyboardInput() {
     var change =false;
     if(keyboard.pressed("w"))
-        if(snake.direction != 3 || snake.direction != 1 )
-        {  snake.direction = 1;change=true; }
+        snake.direction = yash["w"][cameraDir];
     if(keyboard.pressed("d"))
-        if(snake.direction != 4|| snake.direction != 2 )
-        {   snake.direction = 2;change = true ;}
+        snake.direction = yash["d"][cameraDir];
     if(keyboard.pressed("s"))
-        if(snake.direction != 1|| snake.direction != 3 )
-        {   snake.direction = 3;change = true;}
+        snake.direction = yash["s"][cameraDir];
     if(keyboard.pressed("a"))
-        if(snake.direction != 2|| snake.direction != 4 )
-        {   snake.direction = 4;change = true;}
-    if(keyboard.pressed("q"))
-        if(snake.direction != 6|| snake.direction != 6 )
-        {   snake.direction = 5;change = true;}
-    if(keyboard.pressed("e"))
-        if(snake.direction != 5|| snake.direction != 6 )
-            snake.direction =6;
+        snake.direction = yash["a"][cameraDir];
+    if(keyboard.pressed("up"))
+        snake.direction = yash["q"][cameraDir];
+    if(keyboard.pressed("down"))
+        snake.direction = yash["e"][cameraDir];
     if(keyboard.pressed("right"))
-        cameraTheta+=incUnit;
+        cameraDir = (4+cameraDir+1)%4;
     if(keyboard.pressed("left"))
-        cameraTheta-=incUnit;
+        cameraDir = (4+cameraDir-1)%4;
+   // console.log(snakeMovement[cameraDir][snake.direction]);
+    camera.position.x = cameraPos[cameraDir]["x"];
+    camera.position.z = cameraPos[cameraDir]["z"];
 
-    camera.position.x = camRadius*Math.sin(cameraTheta);
 
-    camera.position.z = camRadius*Math.cos(cameraTheta);
+  //  camera.position.x = camRadius*Math.sin(cameraTheta);
+
+   // camera.position.z = camRadius*Math.cos(cameraTheta);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 }
@@ -127,7 +154,7 @@ function gameOver(){
 }
 function getEmptyBox() {
 
-    var position ={x:10*Math.floor(Math.random()*18-9)+5,y:10*Math.floor(Math.random()*18-9)+5,z:10*Math.floor(Math.random()*18-9)+5};
+    var position ={x:10*Math.floor(Math.random()*18-9)+5,y:(10*Math.floor(Math.random()*18-9))+5,z:(10*Math.floor(Math.random()*18-9))+5};
     snake.body.forEach(function (part) {
         if(part.position === position)
             return getEmptyBox();
@@ -144,19 +171,25 @@ function Food(scene,id){
 Food.prototype = {
     remove: function () {
         this.scene.remove(scene.getObjectByName(this.id));
+        console.log("it works");
     },
     add: function () {
         var temp = new THREE.Mesh(this.geometry,this.material);
         temp.name = this.id;
         this.position = getEmptyBox();
+    //    this.position = {x:5,y:5,z:5};
         temp.position.set(this.position.x,this.position.y,this.position.z);
         this.scene.add(temp);
         console.log("hello",this.position);
+      //  temp.position.set(100,0,0);
+       // scene.add(temp);
     }
 }
 function isFoodCollision() {
-    if(snake.body[0].position === food.position)
+    console.log(snake.body[0].position,food.position);
+    if(snake.body[0].position.x == food.position.x && snake.body[0].position.y == food.position.y && snake.body[0].position.z == food.position.z)
     {
+        console.log("whatsup");
         food.remove();
         food.add();
         return true;
@@ -169,9 +202,11 @@ food.add();
 var t=0;
 function render(){
         if(isFoodCollision())
-            snake.add();
-        if(snake.isSelfCrash())
+        snake.add();
+        if(snake.isSelfCrash()) {
+            console.log("selfcrash");
             gameOver();
+        }
         keyboardInput();
         if(t%5 == 0)
             if(!snake.move())
@@ -180,7 +215,7 @@ function render(){
 	    t++;
 }
 snake.init();
-var fps = 30;
+var fps = 10;
 var animation = setInterval( render, 1000/fps  );
 
 
