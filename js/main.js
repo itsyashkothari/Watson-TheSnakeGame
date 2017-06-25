@@ -14,26 +14,30 @@ if (Detector.webgl) {
 var camRadius =200;
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
-camera.position.set( 0 , 100,camRadius );
+camera.position.set( 0 , 80,camRadius );
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 var renderer = new THREE.WebGLRenderer({alpha:true});
 renderer.autoClear = false;
 renderer.setSize( window.innerWidth, window.innerHeight );
-//renderer.setClearColor( 0x000000, 1);
-scene.background = new THREE.Color(0,0,0);
+//renderer.setClearColor( 0x81d4fa, 1);
+scene.background = new THREE.Color(0x64b5f6);
 document.body.appendChild( renderer.domElement );
+/*
 var geometry1 = new THREE.CubeGeometry(200, 200, 200);
+
 var material1 = new THREE.MeshBasicMaterial({
     color: 0xff0000,
     wireframe: true
 });
+var geometry = new THREE.BoxBufferGeometry( 100, 100, 100 );
+ scene.add(mesh);
+
+*/
 var light = new THREE.PointLight( 0xff0000, 10 );
-light.position.set( 0,100, 0 );
+light.position.set( 0,0, 0 );
 scene.add( light );
 var light2 = new THREE.AmbientLight( 0x404040 ); // soft white light
 scene.add( light2 );
-mesh = new THREE.Mesh(geometry1, material1);
-scene.add(mesh);
 // Keyboard controls
 var keyboard = new THREEx.KeyboardState();
 function createWall()
@@ -70,11 +74,11 @@ function createGrid(scene){
     grid.position.set(0,0,0);
     scene.add( grid );
 }
-var snake = new Snake(scene,1000,15);
+var snake = new Snake(scene,200,15);
 
 createGrid(scene);
-var axisHelper = new THREE.AxisHelper( 500 );
-scene.add( axisHelper );
+//var axisHelper = new THREE.AxisHelper( 500 );
+//scene.add( axisHelper );
 renderer.render(scene,camera);
 /*
 function onWindowResize() {
@@ -105,7 +109,13 @@ var cameraPos =[
     }
 
 ];
-var yash = {
+var geometry1 = new THREE.BoxBufferGeometry( 200, 200, 200 );
+var geometry = new THREE.EdgesGeometry( geometry1 ); // or WireframeGeometry
+var material = new THREE.LineBasicMaterial( { color: 0x1a237e, linewidth: 2 } );
+var edges = new THREE.LineSegments( geometry, material );
+scene.add( edges );
+
+var relativeDirection = {
     w:[0,3,2,1],
     d:[1,0,3,2],
     s:[2,1,0,3],
@@ -117,23 +127,28 @@ var yash = {
 console.log(snakeMovement[cameraDir][snake.direction]);
 var cameraTheta = 0,incUnit=0.2;
 function keyboardInput() {
+ //   console.log(keyboard.keyCodes);
     var change =false;
     if(keyboard.pressed("w"))
-        snake.direction = yash["w"][cameraDir];
+        snake.direction = relativeDirection["w"][cameraDir];
     if(keyboard.pressed("d"))
-        snake.direction = yash["d"][cameraDir];
+        snake.direction = relativeDirection["d"][cameraDir];
     if(keyboard.pressed("s"))
-        snake.direction = yash["s"][cameraDir];
+        snake.direction = relativeDirection["s"][cameraDir];
     if(keyboard.pressed("a"))
-        snake.direction = yash["a"][cameraDir];
+        snake.direction = relativeDirection["a"][cameraDir];
     if(keyboard.pressed("up"))
-        snake.direction = yash["q"][cameraDir];
+        snake.direction = relativeDirection["q"][cameraDir];
     if(keyboard.pressed("down"))
-        snake.direction = yash["e"][cameraDir];
+        snake.direction = relativeDirection["e"][cameraDir];
     if(keyboard.pressed("right"))
         cameraDir = (4+cameraDir+1)%4;
     if(keyboard.pressed("left"))
         cameraDir = (4+cameraDir-1)%4;
+    if(keyboard.pressed("8"))
+        console.log("8");
+    if(keyboard.pressed("5"))
+        console.log("5");
    // console.log(snakeMovement[cameraDir][snake.direction]);
     camera.position.x = cameraPos[cameraDir]["x"];
     camera.position.z = cameraPos[cameraDir]["z"];
@@ -144,12 +159,31 @@ function keyboardInput() {
    // camera.position.z = camRadius*Math.cos(cameraTheta);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+
 }
 function gameOver(){
     clearInterval(animation);
+    var score = snake.length - 15;
     while(scene.children.length > 0){
         scene.remove(scene.children[0]);
     }
+    var loader = new THREE.FontLoader();
+
+    loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+
+        var geometry = new THREE.TextGeometry('Your Score : ' + score+ '\n Refresh the page to play again :)' , {
+            font: font,
+            size: 80,
+            height: 5,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 10,
+            bevelSize: 8,
+            bevelSegments: 5
+        } );
+    } );
+    window.alert("Your Score is "+ score + " .\n" + "Click OK to play again :)");
+    window.location.reload(true);
  //   scene.add()
 }
 function getEmptyBox() {
@@ -166,12 +200,12 @@ function Food(scene,id){
     this.id = id ;
     this.scene = scene;
     this.geometry = new THREE.SphereGeometry(5,32,32);
-    this.material = new THREE.MeshLambertMaterial({color:0xe21212});
+    this.material = new THREE.MeshLambertMaterial({color:0x0000ff});
 }
 Food.prototype = {
     remove: function () {
         this.scene.remove(scene.getObjectByName(this.id));
-        console.log("it works");
+  //      console.log("it works");
     },
     add: function () {
         var temp = new THREE.Mesh(this.geometry,this.material);

@@ -1,11 +1,18 @@
 function Snake(scene,boxsize,originalLength){
     this.body = [];
+    this.edges = [];
     this.length = originalLength;
     this.scene = scene;
     this.direction = 4 ;
     this.geometry = new THREE.BoxGeometry(10,10,10);
     this.material = new THREE.MeshLambertMaterial();
-    this.material.color = new THREE.Color(0,0,255)
+    this.material.color = new THREE.Color(0,0,255);
+    this.edgeGeometry = new THREE.EdgesGeometry( this.geometry ); // or WireframeGeometry
+    this.edgeMaterial = new THREE.LineBasicMaterial( { color: 0xffff00, linewidth: 2 } );
+    var edge = new THREE.LineSegments( this.edgeGeometry, this.edgeMaterial );
+
+
+
     this.boxsize = boxsize;
 }
 Snake.prototype = {
@@ -16,13 +23,21 @@ Snake.prototype = {
 
         for (var i = 0; i < this.length; i++) {
             var temp = new THREE.Mesh(this.geometry, this.material);
+          //  var tempEdge = new THREE.LineSegments( this.edgeGeometry, this.edgeMaterial );
             temp.position.set(x + 5, y + 5, z + 5);
+        //    tempEdge.position.set(x + 5, y + 5, z + 5);
+
             y -= 10;
             this.body.push(temp);
+        //    this.edges.push(tempEdge);
         }
         this.body.forEach(function (part) {
             this.scene.add(part);
-        })
+        });
+       /* this.edges.forEach(function (part) {
+           this.scene.add(part);
+        });
+        */
     },
     move: function () {
         var temp = this.body.pop();
@@ -31,6 +46,11 @@ Snake.prototype = {
         temp.position.y = firstpos.y + snakeMovement[this.direction][1];
         temp.position.z = firstpos.z + snakeMovement[this.direction][2];
         this.body.unshift(temp);
+        /*
+        var tempEdge = this.edges.pop();
+        tempEdge.position.set(temp.position);
+        this.edges.unshift(tempEdge);
+      */
         if(this.isWallImpact())
             return false;
         else
