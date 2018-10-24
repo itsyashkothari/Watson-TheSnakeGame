@@ -36,3 +36,5 @@ Todo-
 3)Show snake position, food position on screen.
 4)Make a start,pause and game over screen.
 
+
+
